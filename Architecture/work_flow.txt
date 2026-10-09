@@ -1,0 +1,20 @@
+[ STEP 1: Taking Input (The Data) ]
+ ├── Satellite Radar Images (Can see through clouds)
+ ├── Normal Color Images (Standard photos)
+ └── Actual City Maps (Used to check if our AI is right)
+          │
+          ▼
+[ STEP 2: The Brain (Behind-the-Scenes Server) ]
+ ├── 1. Cleaning up and resizing the images
+ ├── 2. The AI Model (Two Detectives Working Together)
+ │       ├── Radar Brain (Looks closely at shapes & edges)
+ │       ├── Color Brain (Looks closely at visual details)
+ │       ├── Combining the Clues (Both brains share notes)
+ │       └── Final Decision Maker (Guesses the final building height)
+ └── 3. Converting the actual map into a height "heatmap"
+          │
+          ▼
+[ STEP 3: The User Website (What You See) ]
+ ├── The Website asks the Server for the final results
+ ├── 2D Dashboard (Shows you the images and how accurate the AI was)
+ └── Interactive 3D Map (Builds a 3D model of the city you can explore!)
