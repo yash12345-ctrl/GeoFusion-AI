@@ -8,7 +8,7 @@ import numpy as np
 import cv2
 import rasterio
 import rasterio.features
-import geopandas as gpd
+import geopandas as gpd 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from torchvision.models import resnet18, resnet50
@@ -53,7 +53,7 @@ class HeightFusionModel(nn.Module):
 
 # --- GLOBAL STATE ---
 device = torch.device("cpu")
-data_folder = "SpaceNet_20_Samples"
+data_folder = "../../dataset/SpaceNet_20_Samples"
 model = None
 global_metrics = {}
 available_tiles = []
@@ -78,7 +78,7 @@ def load_system():
     global model, available_tiles, global_metrics
     
     # Load Model
-    weights_path = "final_height_predictor.pth"
+    weights_path = "../../encode/final_height_predictor.pth"
     model = HeightFusionModel(SpaceNet6ResNet().backbone, resnet50(weights=None))
     if os.path.exists(weights_path):
         model.load_state_dict(torch.load(weights_path, map_location=device), strict=False)
@@ -206,6 +206,7 @@ def get_prediction(tid: str):
 
         # AI Prediction
         with torch.no_grad():
+            assert model is not None, "Model not loaded"
             pred_h = model(sar_img_tensor.unsqueeze(0), rgb_img_tensor.unsqueeze(0)).item()
 
         return {

@@ -5,6 +5,11 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>frontend</title>
+    <script>
+      window.onerror = function(msg, src, lineno, colno, error) {
+        document.body.innerHTML += '<div style="color:red; font-size: 20px; z-index:9999; position:absolute; top: 0; left: 0;">Error: ' + msg + '</div>';
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

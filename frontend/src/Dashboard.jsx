@@ -7,6 +7,18 @@ export default function Dashboard() {
   const [prediction, setPrediction] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // 2. Fetch specific tile data when slider changes
+  const fetchPrediction = (tileId) => {
+    if (!tileId) return;
+    setLoading(true)
+    fetch(`http://localhost:8000/api/predict/${tileId}`)
+      .then(res => res.json())
+      .then(data => {
+        setPrediction(data)
+        setLoading(false)
+      })
+  }
+
   // 1. Fetch available tiles and global metrics on load
   useEffect(() => {
     fetch('http://localhost:8000/api/config')
@@ -21,18 +33,6 @@ export default function Dashboard() {
       })
       .catch(err => console.error("Error connecting to API:", err))
   }, [])
-
-  // 2. Fetch specific tile data when slider changes
-  const fetchPrediction = (tileId) => {
-    if (!tileId) return;
-    setLoading(true)
-    fetch(`http://localhost:8000/api/predict/${tileId}`)
-      .then(res => res.json())
-      .then(data => {
-        setPrediction(data)
-        setLoading(false)
-      })
-  }
 
   const handleSliderChange = (e) => {
     const newIdx = parseInt(e.target.value)

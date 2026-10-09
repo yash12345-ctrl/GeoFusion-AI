@@ -1,18 +1,38 @@
-# Ignore environments
+# Environments
 myenv/
+env/
+venv/
+.env
 
-# Node modules
+# Dependencies
 node_modules/
+**/node_modules/
+__pycache__/
+*.py[cod]
 
-# Dataset
+# IDEs
+.vscode/
+.idea/
+pyrightconfig.json
+
+# Datasets
+dataset/
 SpaceNet_20_Samples/
 
-# Model files
+# Model Weights
 *.pth
+encode/
 
-# Large images / outputs
+# Build Output
+dist/
+build/
+frontend/dist/
+
+# Logs and OS files
+*.log
+.DS_Store
+
+# Large Images / Data
 *.png
-
-# Geo + tif test data
 *.tif
 *.geojson

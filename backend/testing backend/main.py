@@ -61,7 +61,7 @@ def preprocess(image, is_sar=True):
 # ==========================================
 def run_interactive_test(data_folder):
     device = torch.device("cpu")
-    weights_path = "final_height_predictor.pth"
+    weights_path = "../../encode/final_height_predictor.pth"
     
     if not os.path.exists(weights_path):
         print(f"❌ Error: {weights_path} not found in project folder!")
@@ -246,4 +246,4 @@ def run_interactive_test(data_folder):
     plt.show()
 
 if __name__ == "__main__":
-    run_interactive_test("SpaceNet_20_Samples")
+    run_interactive_test("../../dataset/SpaceNet_20_Samples")

@@ -5,11 +5,13 @@ import * as THREE from 'three';
 import { useLocation } from 'react-router-dom'; // NEW IMPORT
 
 /* ─── Global Styles (Updated to Light Theme) ────────────────── */
-const globalStyle = document.createElement('style');
-globalStyle.textContent = `
+// NOTE: styles are injected/removed via useEffect inside the component
+// to avoid polluting other pages (e.g. landing page overflow:hidden bug)
+const TD_STYLE_ID = 't_d-page-styles';
+const TD_STYLE_CONTENT = `
   @import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body, html, #root { width: 100%; height: 100%; background: #F5F6F8; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body.td-page, html.td-page, .td-page #root { width: 100%; height: 100%; background: #F5F6F8; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
   
   .pill-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 99px; outline: none; background: #E4DED6; }
   .pill-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #3A5CE8; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; }
@@ -24,7 +26,6 @@ globalStyle.textContent = `
   /* UPDATED: Changed background to #000 for the 3D viewport */
   .viewport-wrap { flex: 1; position: relative; border-radius: 24px; overflow: hidden; margin: 10px; background: #000; border: 1px solid #E4DED6; box-shadow: 0 8px 30px rgba(26,22,18,0.03); }
 `;
-document.head.append(globalStyle);
 
 /* ─── UI Components ──────────────────────────────────────────── */
 function Control({ label, value, min, max, step = 1, onChange, unit = "" }) {
@@ -59,7 +60,7 @@ const CityMap = ({ rawImageData, resolution, sensitivity, maxHeight, maxBlockSiz
         const r = data[i]/255, g = data[i+1]/255, b = data[i+2]/255;
         const brightness = (0.2126 * r + 0.7152 * g + 0.0722 * b);
         
-        if (brightness > (1 - sensitivity)) {
+        if (brightness > sensitivity) {  // sensitivity=0.3 means "detect pixels brighter than 30%"
           const gx = Math.floor(x / step);
           const gy = Math.floor(y / step);
           if (gx < gridW && gy < gridH) {
@@ -159,15 +160,37 @@ const CityMap = ({ rawImageData, resolution, sensitivity, maxHeight, maxBlockSiz
 /* ─── Main App ──────────────────────────────────────────────── */
 export default function App() {
   const location = useLocation(); // Hook to access state passed from Dashboard
-  
+
+  // Inject page-scoped styles only while this component is mounted
+  useEffect(() => {
+    // Add class to body so CSS selector `.td-page` scopes overflow:hidden
+    document.documentElement.classList.add('td-page');
+    document.body.classList.add('td-page');
+
+    let styleEl = document.getElementById(TD_STYLE_ID);
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = TD_STYLE_ID;
+      styleEl.textContent = TD_STYLE_CONTENT;
+      document.head.appendChild(styleEl);
+    }
+    return () => {
+      // Cleanup: remove styles and class when navigating away
+      document.documentElement.classList.remove('td-page');
+      document.body.classList.remove('td-page');
+      const el = document.getElementById(TD_STYLE_ID);
+      if (el) el.remove();
+    };
+  }, []);
+
   const [rawImageData, setRawImageData] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [res, setRes] = useState(70);
-  const [sens, setSens] = useState(0.8);
+  const [sens, setSens] = useState(0.3);  // 0.3 = detect pixels brighter than 30%
   const [maxH, setMaxH] = useState(45);
-  const [maxB, setMaxB] = useState(6);
-  const [cTol, setCTol] = useState(0.12);
-  const [hTol, setHTol] = useState(8); 
+  const [maxB, setMaxB] = useState(50);  // in grid-cell units; was 6 (too small)
+  const [cTol, setCTol] = useState(0.25); // was 0.12 (too strict)
+  const [hTol, setHTol] = useState(15);  // was 8 (too strict)
 
   // NEW: Process an image URL (either from file upload or passed via state)
   const processImageSource = (src) => {
@@ -213,9 +236,9 @@ export default function App() {
         </div>
 
         <Control label="Detail" value={res} unit="%" min={10} max={100} onChange={e => setRes(parseInt(e.target.value))} />
-        <Control label="Sensitivity" value={Math.round(sens*100)} unit="%" min={0} max={100} onChange={e => setSens(parseInt(e.target.value)/100)} />
+        <Control label="Sensitivity (brightness threshold)" value={Math.round(sens*100)} unit="%" min={1} max={99} onChange={e => setSens(parseInt(e.target.value)/100)} />
         <Control label="Skyline Height" value={maxH} unit="m" min={5} max={200} onChange={e => setMaxH(parseInt(e.target.value))} />
-        <Control label="Max Building Size" value={maxB} min={1} max={25} onChange={e => setMaxB(parseInt(e.target.value))} />
+        <Control label="Max Building Size" value={maxB} min={1} max={200} onChange={e => setMaxB(parseInt(e.target.value))} />
         <Control label="Color Tolerance" value={cTol} step={0.01} min={0.01} max={0.4} onChange={e => setCTol(parseFloat(e.target.value))} />
         <Control label="Height Tolerance" value={hTol} min={1} max={50} onChange={e => setHTol(parseInt(e.target.value))} />
 
@@ -225,8 +248,8 @@ export default function App() {
       </div>
 
       <div className="viewport-wrap">
-        <Canvas>
-          <PerspectiveCamera makeDefault position={[180, 180, 180]} />
+        <Canvas camera={{ position: [0, 200, 300], fov: 60, near: 1, far: 5000 }}>
+          <PerspectiveCamera makeDefault position={[0, 200, 300]} fov={60} near={1} far={5000} />
           <ambientLight intensity={0.7} /> 
           <directionalLight position={[100, 250, 150]} intensity={1.8} />
           <pointLight position={[-100, 100, -100]} intensity={0.8} color="#3A5CE8" />
