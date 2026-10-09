@@ -80,5 +80,4 @@ python train.py
 
 ---
 
-## 📄 License
-This project was developed as a B.Tech academic/hackathon project. Feel free to explore, fork, and contribute!
+
